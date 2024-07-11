@@ -31,7 +31,7 @@
 - [x] 多收集、想出一些query，100、200条就行。试试让大模型自己生成需要使用aiagent的问题？
 - [ ] 找一个文本标注工具，有页面。显示query和模型的推理结果（多轮对话），人修改推理结果就行，prompt展示但不给修改。
   > 用gradio自己搭建标注网页
-  > 参考：Textbox模块 https://www.yourmetaverse.cn/nlp/434/
-  > 参考：整体demo https://blog.csdn.net/m0_56243424/article/details/140298602
+  > - 参考：Textbox模块 https://www.yourmetaverse.cn/nlp/434
+  > - 参考：整体demo https://blog.csdn.net/m0_56243424/article/details/140298602
 - [ ] 自己写agent流程？让llm先给出任务分解，再按步骤一步一步执行。同时action不光有tools，也可以加上对memory存入、查询和修改操作。需要精心设计每一步的prompt。
 - [ ] 不一定要用langchain，可以看看transformers的tools是怎么用的。
