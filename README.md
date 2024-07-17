@@ -4,10 +4,10 @@
 
 # 大模型自生成微调语料
 
-## 大模型自己生成ai_agent的问题
+## 1. 大模型自己生成ai_agent的问题
 [大模型自己生成ai_agent的问题](generate_finetune_sample/generate_agent_finetune_sample.py)
 
-## 大模型检查生成的问题
+## 2. 大模型检查生成的问题
 [大模型来检查生成的问题](generate_finetune_sample/check_sample.py)合不合格
 
 检查时的回答：
