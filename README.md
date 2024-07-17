@@ -39,3 +39,4 @@
   > - 参考：整体demo https://blog.csdn.net/m0_56243424/article/details/140298602
 - [ ] 自己写agent流程？让llm先给出任务分解，再按步骤一步一步执行。同时action不光有tools，也可以加上对memory存入、查询和修改操作。需要精心设计每一步的prompt。
 - [ ] 不一定要用langchain，可以看看transformers的tools是怎么用的。
+- [ ] 切换到qwen，qwen本身就支持react格式。 https://github.com/QwenLM/Qwen/blob/main/examples/react_prompt.md 
