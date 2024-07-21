@@ -8,6 +8,7 @@ from openai import OpenAI
 FORMATED_SAMPLES_PATH = 'checked_finetune_sample_formatted.jsonl'
 OPENAI_BASE_URL = 'http://localhost:11434/v1/'
 MODEL_NAME = 'llama-3-chinese-8b-instruct-v3-f16'
+# MODEL_NAME = 'qwen2:7b'
 
 if gr.NO_RELOAD:
     client = OpenAI(
@@ -26,21 +27,14 @@ current_data: dict = None
 current_messages = None
 
 
-def get_response(**params):
-    chat_completion = client.chat.completions.create(
-        **params,
+def run_conversation(messages: list, stream=False):
+    response = client.chat.completions.create(
+        messages=messages,
+        temperature=0.6,
+        stream=stream,
         model=MODEL_NAME,
+        stop=['Observation:', 'Observation:\n'],
     )
-    return chat_completion
-
-
-def run_conversation(query: str, messages: list, stream=False):
-    params = {
-        "messages": messages,
-        "temperature": 0.6,
-        "stream": stream,
-    }
-    response = get_response(**params)
     return response
 
 
@@ -72,19 +66,26 @@ def chatbot_interface():
     current_data = get_no_verify_data()
     query = current_data['query']
     current_messages = [
-        {"role": "user", "content": query}
+        {"role": "system",
+         "content": "Answer the following questions as best you can. You have access to the following tools:\n\nCalculator(*args: Any, callbacks: Union[List[langchain_core.callbacks.base.BaseCallbackHandler], langchain_core.callbacks.base.BaseCallbackManager, NoneType] = None, tags: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any - Useful for when you need to answer questions about math.\nSearch(query: str) -> str - A wrapper around Search. Useful for when you need to answer questions about current events. Input should be a search query.\n\nUse the following format:\n\nQuestion: the input question you must answer\nThought: you should always think about what to do\nAction: the action to take, should be one of [Calculator, Search]\nAction Input: the input to the action\nObservation: the result of the action\n... (this Thought/Action/Action Input/Observation can repeat N times)\nThought: I now know the final answer\nFinal Answer: the final answer to the original input question\n\nBegin!\n\n"},
+        {"role": "user", "content": f"Question: {query}\n"},
+        {"role": "assistant", "content": f"Thought: "},
     ]
 
     stream = True
-    response = run_conversation(query, messages=current_messages, stream=stream)
+    response = run_conversation(messages=current_messages, stream=stream)
     if not stream:
-        return response.choices[0].message.content
-    message = ""
-    for token in response:
-        if token.choices[0].finish_reason is not None:
-            continue
-        message += token.choices[0].delta.content
-        yield query, message
+        message = response.choices[0].message.content
+        current_messages[-1]['content'] += message
+        yield convert_message_to_list(current_messages)
+    else:
+        for token in response:
+            if token.choices[0].finish_reason is not None:
+                continue
+            message = token.choices[0].delta.content
+            current_messages[-1]['content'] += message
+            yield convert_message_to_list(current_messages[:-1])
+            yield convert_message_to_list(current_messages)
 
 
 def save_func():
@@ -100,23 +101,37 @@ def delete_func():
     current_data = None
     current_messages = None
     save_datas()
-    return "", ""
+    return []
+
+
+def convert_message_to_list(messages):
+    result = []
+    for message in messages:
+        result.append([message['role'], message['content']])
+    return result
 
 
 with gr.Blocks() as demo:
     gr.Markdown("# Manually Annotate Samples")
-    with gr.Row():
-        query_textbox = gr.Textbox(label="Query", interactive=False),
-        response_textbox = gr.Textbox(label="Response", interactive=True)
+    outputs = gr.DataFrame(headers=["role", "content"],
+                           datatype=["str", "markdown"],
+                           interactive=True,
+                           wrap=True)
     with gr.Row():
         start_button = gr.Button("Start & Next")
         del_button = gr.Button("Delete")
         save_button = gr.Button("Save")
-    start_button.click(fn=chatbot_interface, outputs=[query_textbox[0], response_textbox])
+    start_button.click(fn=chatbot_interface, outputs=[outputs])
     save_button.click(fn=save_func)
-    del_button.click(fn=delete_func, outputs=[query_textbox[0], response_textbox])
+    del_button.click(fn=delete_func, outputs=[outputs])
+    # commit_btn.click(fn=add_text, inputs=[chatbot, txt], outputs=[chatbot, txt]).then(
+    #     bot, chatbot, chatbot, api_name="bot_response"
+    # ).then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
+
 
 demo.launch(server_name="0.0.0.0",
             share=False,
             debug=True,
             )
+
+# https://blog.csdn.net/jclian91/article/details/132417892
