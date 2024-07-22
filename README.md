@@ -26,7 +26,7 @@
 ## 3. 在网页上人工校验LLM回答问题的输出
 	3.1 将问题文件转为所需的数据格式
 	3.2 已经用gradio做了一个llm流式回答问题的网页，支持多轮对话（开发中），支持任意修改回答，并保存（验证开发中）
-![](./generate_finetune_sample/gradio_screenshot.png)
+![image](./generate_finetune_sample/gradio_screenshot.png)
 
 ----------------------------------------
 
