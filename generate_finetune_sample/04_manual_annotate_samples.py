@@ -98,8 +98,10 @@ def get_response_and_dataframe(messages, stream):
         yield convert_message_to_dataframe(messages)
 
 
-def save_func():
+def save_func(dataframe):
     global current_data, current_messages
+    yield change_dataframe_to_current_message(dataframe=dataframe)
+    
     current_data["messages"] = current_messages
     current_data["is_verify"] = True
     save_datas()
@@ -136,6 +138,16 @@ def change_dataframe_to_current_message(dataframe):
     return convert_message_to_dataframe(messages=current_messages)
 
 
+def continue_conversation(dataframe):
+    global current_messages
+    yield change_dataframe_to_current_message(dataframe=dataframe)
+
+    current_messages.append({"role": "assistant", "content": "Observation: This is a mock message.\nThought: "})
+    for response_dataframe in get_response_and_dataframe(messages=current_messages, stream=STEAM):
+        yield response_dataframe
+
+
+
 with gr.Blocks() as demo:
     gr.Markdown("# Manually Annotate Samples")
     outputs = gr.DataFrame(headers=["role", "content"],
@@ -148,9 +160,9 @@ with gr.Blocks() as demo:
         save_button = gr.Button("Save")
         del_button = gr.Button("Delete")
     start_button.click(fn=chatbot_interface, outputs=[outputs])
-    save_button.click(fn=save_func)
+    save_button.click(fn=save_func, inputs=[outputs], outputs=[outputs])
     del_button.click(fn=delete_func, outputs=[outputs])
-    continue_button.click(fn=change_dataframe_to_current_message, inputs=[outputs], outputs=[outputs])
+    continue_button.click(fn=continue_conversation, inputs=[outputs], outputs=[outputs])
 
     # commit_btn.click(fn=add_text, inputs=[chatbot, txt], outputs=[chatbot, txt]).then(
     #     bot, chatbot, chatbot, api_name="bot_response"
