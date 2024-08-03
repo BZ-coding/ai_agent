@@ -38,7 +38,7 @@ search
 # In[4]:
 
 
-search.run("hello")
+# search.run("hello")
 
 # langchain的ai_agent的prompt：
 # 
@@ -80,12 +80,12 @@ python_ast = PythonAstREPLTool()
 # In[6]:
 
 
-print(wolfram.run("9894556*897898"))
+# print(wolfram.run("9894556*897898"))
 
 # In[7]:
 
 
-print(python_ast.run("print('hello')"))
+# print(python_ast.run("print('hello')"))
 
 
 # In[8]:
@@ -139,9 +139,9 @@ tools_info = [
     },
     {
         'name_for_human':
-            'python',
+            'Python',
         'name_for_model':
-            'python',
+            'Python',
         'description_for_model':
             "A Python shell. Use this to execute python commands. When using this tool, sometimes output is abbreviated - Make sure it does not look abbreviated before using it in your answer. "
             "Don't add comments to your python code.",
@@ -231,21 +231,22 @@ chatbot = ChatBot()
 
 
 def parse_latest_plugin_call(text: str) -> Tuple[str, str]:
-    i = text.rfind('\nAction:')
-    if i == -1:
-        i = text.rfind('Action:')
-    j = text.rfind('\nAction Input:')
-    k = text.rfind('\nObservation:')
-    # print(i, j, k)
-    if 0 <= i < j:  # If the text has `Action` and `Action input`,
-        if k < j:  # but does not contain `Observation`,
+    # print(f"text: {text}")
+    action_index = text.rfind('\nAction:')
+    if action_index == -1:
+        action_index = text.rfind('Action:')
+    action_input_index = text.rfind('\nAction Input:')
+    observation_index = text.rfind('\nObservation:')
+    # print(f"action_index:{action_index} action_input_index:{action_input_index} observation_index:{observation_index}")
+    if 0 <= action_index < action_input_index:  # If the text has `Action` and `Action input`,
+        if observation_index < action_input_index:  # but does not contain `Observation`,
             # then it is likely that `Observation` is ommited by the LLM,
             # because the output text may have discarded the stop word.
             text = text.rstrip() + '\nObservation:'  # Add it back.
-            k = text.rfind('\nObservation:')
-    if 0 <= i < j < k:
-        plugin_name = text[i + len('\nAction:'):j].strip()
-        plugin_args = text[j + len('\nAction Input:'):k].strip()
+            observation_index = text.rfind('\nObservation:')
+    if 0 <= action_index < action_input_index < observation_index:
+        plugin_name = text[action_index + len('\nAction:'):action_input_index].strip()
+        plugin_args = text[action_input_index + len('\nAction Input:'):observation_index].strip()
         return plugin_name, plugin_args
     return '', ''
 
@@ -321,8 +322,10 @@ def ai_agent_chat(choose_tools, query):
     messages = [{"role": "system", "content": f"{prompt}"}, {"role": "assistant", "content": "Thought: "}]
     # template = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=False)
     # print(template, flush=True)
-    print(prompt, flush=True)
-    print("Thought: ", flush=True)
+    print(prompt, end='', flush=True)
+    print("\033[32m", end='', flush=True)
+    print("Thought: ", end='', flush=True)
+    print("\033[0m", end='', flush=True)
     response = ai_agent_chatbot_chat(chatbot, messages)
     messages[-1]["content"] += f"{response}"
 
@@ -332,14 +335,17 @@ def ai_agent_chat(choose_tools, query):
         # if api_output in ["tool name is empty", "no tool founds"]:
         #     break
         response = f"Observation: \"\"\"{api_output}\"\"\"\n"
-        print("\033[34m" + response + "\033[0m", flush=True)
+        print("\033[34m" + response + "\033[0m", end='', flush=True)
         messages.append({"role": "assistant", "content": f"Observation: {response}"})
 
         messages.append({"role": "assistant", "content": "Thought: "})
-        print("Thought: ", flush=True)
+        print("\033[32m", end='', flush=True)
+        print("Thought: ", end='', flush=True)
+        print("\033[0m", end='', flush=True)
         response = ai_agent_chatbot_chat(chatbot, messages)  # 继续生成
         messages[-1]["content"] += f"{response}"
 
 
 print("\n\n\n\n", flush=True)
-ai_agent_chat(choose_tools=tools_info[0:1], query="金陵中学所在的行政区有多少人?")
+# ai_agent_chat(choose_tools=tools_info[0:1], query="金陵中学所在的行政区有多少人?")
+ai_agent_chat(choose_tools=tools_info, query="金陵中学所在的行政区有多少人?")
