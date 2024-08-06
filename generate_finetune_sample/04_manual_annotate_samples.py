@@ -71,7 +71,7 @@ def chatbot_interface():
         {"role": "system",
          "content": "Answer the following questions as best you can. You have access to the following tools:\n\nCalculator(*args: Any, callbacks: Union[List[langchain_core.callbacks.base.BaseCallbackHandler], langchain_core.callbacks.base.BaseCallbackManager, NoneType] = None, tags: Optional[List[str]] = None, metadata: Optional[Dict[str, Any]] = None, **kwargs: Any) -> Any - Useful for when you need to answer questions about math.\nSearch(query: str) -> str - A wrapper around Search. Useful for when you need to answer questions about current events. Input should be a search query.\n\nUse the following format:\n\nQuestion: the input question you must answer\nThought: you should always think about what to do\nAction: the action to take, should be one of [Calculator, Search]\nAction Input: the input to the action\nObservation: the result of the action\n... (this Thought/Action/Action Input/Observation can repeat N times)\nThought: I now know the final answer\nFinal Answer: the final answer to the original input question\n\nBegin!\n\n"},
         {"role": "user", "content": f"Question: {query}\n"},
-        {"role": "assistant", "content": f"Thought: "},
+        # {"role": "assistant", "content": f"Thought: "},
     ]
 
     for response_dataframe in get_response_and_dataframe(messages=current_messages, stream=STEAM):
@@ -92,6 +92,7 @@ def get_response(messages, stream):
 
 
 def get_response_and_dataframe(messages, stream):
+    messages.append({"role": "assistant", "content": ""})
     for message in get_response(messages, stream):
         messages[-1]['content'] += message
         yield convert_message_to_dataframe(messages[:-1])
@@ -142,7 +143,7 @@ def continue_conversation(dataframe):
     global current_messages
     yield change_dataframe_to_current_message(dataframe=dataframe)
 
-    current_messages.append({"role": "assistant", "content": "Observation: This is a mock message.\nThought: "})
+    current_messages.append({"role": "assistant", "content": "Observation: This is a mock message.\n"})
     for response_dataframe in get_response_and_dataframe(messages=current_messages, stream=STEAM):
         yield response_dataframe
 

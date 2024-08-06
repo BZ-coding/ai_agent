@@ -193,46 +193,31 @@ class AIAgent:
             print("\033[0m", end='', flush=True)
         return response
 
-    def ai_agent_chat(self, query, temperature=0.0, is_print=True):
-        prompt = self.build_planning_prompt(query)  # 组织prompt
-        if is_print:
-            print(prompt, end='', flush=True)
-        messages = [{"role": "system", "content": f"{prompt}"}]
-        yield messages
-
-        if is_print:
-            print("\033[32m", end='', flush=True)
-            print("Thought: ", end='', flush=True)
-            print("\033[0m", end='', flush=True)
-        messages.append({"role": "assistant", "content": "Thought: "})
-        response = self.ai_agent_chatbot_chat(messages=messages,
-                                              temperature=temperature,
-                                              stop=["Observation:", "Observation:\n"],
-                                              is_print=is_print)
-        messages[-1]["content"] += f"{response}"
-        yield messages
-
-        while "Final Answer:" not in response:  # 出现final Answer时结束
-            api_output = self.use_api(response)  # 抽取入参并执行api
-            api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
-            response = f"Observation: \"\"\"{api_output}\"\"\"\n"
+    def ai_agent_chat(self, query, temperature=0.0, is_print=True, messages=None):
+        if not messages:
+            prompt = self.build_planning_prompt(query)  # 组织prompt
             if is_print:
-                print("\033[34m" + response + "\033[0m", end='', flush=True)
-            messages.append({"role": "assistant", "content": f"Observation: {response}"})
+                print(prompt, end='', flush=True)
+            messages = [{"role": "system", "content": f"{prompt}"}]
             yield messages
 
-            # 继续生成
-            if is_print:
-                print("\033[32m", end='', flush=True)
-                print("Thought: ", end='', flush=True)
-                print("\033[0m", end='', flush=True)
-            messages.append({"role": "assistant", "content": "Thought: "})
+        while True:
             response = self.ai_agent_chatbot_chat(messages=messages,
                                                   temperature=temperature,
                                                   stop=["Observation:", "Observation:\n"],
                                                   is_print=is_print)
-            messages[-1]["content"] += f"{response}"
+            messages.append({"role": "assistant", "content": response})
+            if "Final Answer:" in messages[-1]["content"]:
+                break  # 出现final Answer时结束
+
+            api_output = self.use_api(messages[-1]["content"])  # 抽取入参并执行api
+            api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
+            response = f"Observation: \"\"\"{api_output}\"\"\"\n"
+            if is_print:
+                print("\033[34m" + response + "\033[0m", end='', flush=True)
+            messages.append({"role": "assistant", "content": response})
             yield messages
+        yield messages
 
 
 if __name__ == '__main__':
@@ -242,10 +227,12 @@ if __name__ == '__main__':
 
     chatbot = ChatBot()
     ai_agent = AIAgent(chatbot=chatbot)
+    is_print = False
 
-    messages = ai_agent.ai_agent_chat(query="金陵中学所在的行政区有多少人?", temperature=0.0, is_print=False)
+    messages = ai_agent.ai_agent_chat(query="金陵中学所在的行政区有多少人?", temperature=0.0, is_print=is_print)
 
     print("\n\n\n\n")
     for current_messages in messages:
-        print(current_messages[-1]["content"])
+        if not is_print:
+            print(current_messages[-1]["content"])
         pass
