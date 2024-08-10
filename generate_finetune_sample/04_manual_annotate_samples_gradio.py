@@ -133,6 +133,8 @@ def change_conversation(index, content):
     if id not in range(len(current_messages)):
         return convert_message_to_dataframe(current_messages)
     current_messages[id]["content"] = content
+    if not content:
+        current_messages.pop(id)
     return convert_message_to_dataframe(current_messages)
 
 
