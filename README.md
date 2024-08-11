@@ -47,11 +47,12 @@
   > 3. Llama3使用 bfloat16 进行训练，但原始推理使用float16。
   > 4. tokenizer 自己就有模板能力，可以试试。 tokenizer_config.json  https://huggingface.co/docs/transformers/main/en/chat_templating#templates-for-chat-models
 - [x] 多收集、想出一些query，100、200条就行。试试让大模型自己生成需要使用aiagent的问题？
-- [ ] 找一个文本标注工具，有页面。显示query和模型的推理结果（多轮对话），人修改推理结果就行，prompt展示但不给修改。
+- [x] 找一个文本标注工具，有页面。显示query和模型的推理结果（多轮对话），人修改推理结果就行，prompt展示但不给修改。
   > 用gradio自己搭建标注网页
   > - 参考：Textbox模块 https://www.yourmetaverse.cn/nlp/434
   > - 参考：整体demo https://blog.csdn.net/m0_56243424/article/details/140298602
-- [ ] 自己写agent流程？让llm先给出任务分解，再按步骤一步一步执行。同时action不光有tools，也可以加上对memory存入、查询和修改操作。需要精心设计每一步的prompt。
-- [ ] 不一定要用langchain，可以看看transformers的tools是怎么用的。
-- [ ] 切换到qwen，qwen本身就支持react格式。 https://github.com/QwenLM/Qwen/blob/main/examples/react_prompt.md
+- [x] 自己写agent流程？让llm先给出任务分解，再按步骤一步一步执行。同时action不光有tools，也可以加上对memory存入、查询和修改操作。需要精心设计每一步的prompt。
+- [x] 不一定要用langchain，可以看看transformers的tools是怎么用的。
+- [x] 切换到qwen，qwen本身就支持react格式。 https://github.com/QwenLM/Qwen/blob/main/examples/react_prompt.md
 - [ ] 微调方法可以先试试直接sft，走通后再思考从数据标注那就变成dpo
+- [ ] 如果可以新增一个叫tools的role类型就好了，但ollama（llama3的官方gguf？）只能是system、user和assistant。

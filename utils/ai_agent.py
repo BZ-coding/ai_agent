@@ -209,10 +209,14 @@ class AIAgent:
             messages.append({"role": "assistant", "content": response})
             if "Final Answer:" in messages[-1]["content"]:
                 break  # 出现final Answer时结束
+            if is_print:
+                print("\033[32m" + "Observation:\n" + "\033[0m", end='', flush=True)
+            messages[-1]["content"] += "Observation:\n"
 
             api_output = self.use_api(messages[-1]["content"])  # 抽取入参并执行api
             api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
-            response = f"Observation: \"\"\"{api_output}\"\"\"\n"
+            # response = f"Observation: \"\"\"{api_output}\"\"\"\n"
+            response = f"\"\"\"{api_output}\"\"\"\n"
             if is_print:
                 print("\033[34m" + response + "\033[0m", end='', flush=True)
             messages.append({"role": "assistant", "content": response})
@@ -227,7 +231,7 @@ if __name__ == '__main__':
 
     chatbot = ChatBot()
     ai_agent = AIAgent(chatbot=chatbot)
-    is_print = False
+    is_print = True
 
     messages = ai_agent.ai_agent_chat(query="金陵中学所在的行政区有多少人?", temperature=0.0, is_print=is_print)
 
