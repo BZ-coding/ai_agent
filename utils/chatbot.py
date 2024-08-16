@@ -10,11 +10,12 @@ MODEL_NAME = 'llama-3-chinese-8b-instruct-v3-f16'
 # MODEL_NAME = 'qwen2:7b'
 
 class ChatBot:
-    def __init__(self):
+    def __init__(self, model_name=None):
         self.client = OpenAI(
             base_url=OPENAI_BASE_URL,
             api_key='ollama',  # required but ignored
         )
+        self.model_name = model_name
 
     def _run_conversation(self, messages: Union[List[Dict[str, str]], str], temperature, tools, stream, stop):
         if isinstance(messages, str):
@@ -23,11 +24,10 @@ class ChatBot:
             messages=messages,
             temperature=temperature,
             stream=stream,
-            model=MODEL_NAME,
+            model=MODEL_NAME if not self.model_name else self.model_name,
             stop=stop,
             tools=tools,
         )
-        print(response)
         return response
 
     def _chat(self, messages: Union[List[Dict[str, str]], str], temperature, tools, stop):

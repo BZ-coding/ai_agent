@@ -99,7 +99,7 @@ class DefaultTools:
             'name_for_model': 'Python',
             'description_for_model': "A Python shell. Use this to execute python commands. When using this tool, sometimes output is abbreviated - Make sure it does not look abbreviated before using it in your answer. Don't add comments to your python code.",
             'parameters': [{
-                "name": "query",
+                "name": "tool_input",
                 "type": "string",
                 "description": "a valid python command.",
                 'required': True
@@ -225,11 +225,14 @@ class AIAgent:
 
 
 if __name__ == '__main__':
+    python_ast = DefaultTools.get_tool_describe_python()
+    print(python_ast['tool_api']("{\"tool_input\": \"print('Hello World!')\"}"))
+
     print(os.path.dirname(os.path.dirname(__file__)))
     sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     from utils.chatbot import ChatBot
 
-    chatbot = ChatBot()
+    chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
     ai_agent = AIAgent(chatbot=chatbot)
     is_print = True
 

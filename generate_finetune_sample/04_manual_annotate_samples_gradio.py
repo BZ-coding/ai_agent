@@ -15,7 +15,7 @@ from utils.chatbot import ChatBot
 FORMATED_SAMPLES_PATH = 'checked_finetune_sample_formatted.jsonl'
 
 if gr.NO_RELOAD:
-    chatbot = ChatBot()
+    chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
     ai_agent = AIAgent(chatbot=chatbot)
 
 # 从JSONL文件逐行读取数据
