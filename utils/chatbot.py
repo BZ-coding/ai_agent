@@ -27,12 +27,12 @@ class ChatBot:
             stop=stop,
             tools=tools,
         )
+        print(response)
         return response
 
     def _chat(self, messages: Union[List[Dict[str, str]], str], temperature, tools, stop):
         response = self._run_conversation(messages=messages, temperature=temperature, stream=False, tools=tools,
                                           stop=stop)
-        print(response)
         return response.choices[0].message.content
 
     def _stream_chat(self, messages: Union[List[Dict[str, str]], str], temperature, tools, stop):
