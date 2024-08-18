@@ -60,3 +60,5 @@
 - [x] 切换到qwen，qwen本身就支持react格式。 https://github.com/QwenLM/Qwen/blob/main/examples/react_prompt.md
 - [ ] 微调方法可以先试试直接sft，走通后再思考从数据标注那就变成dpo
 - [ ] 如果可以新增一个叫tools的role类型就好了，但ollama（llama3的官方gguf？）只能是system、user和assistant。
+- [ ] 发布上huggingface。但在huggingface的playground里不好放上bing的密钥，所以要把agent完整的跑起来可能会比较麻烦。 
+  - 改成调用rag的agent？放一本中国刑法上去？
