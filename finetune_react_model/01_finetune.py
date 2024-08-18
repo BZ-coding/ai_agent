@@ -13,6 +13,7 @@ wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
     name="lr=1.0e-5",
+    group="样本长度实验",
     magic=True,
 )
 
@@ -26,11 +27,14 @@ SAVE_PATH = "/mnt/nfs/zsd_server/models/my/llama-3-chinese-8b-tools"
 tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.pad_token_id = tokenizer.eos_token_id
-print(tokenizer)
+# print(tokenizer)
 
 dataset = load_dataset("json", data_files="./finetune_react_model/finetune_samples.jsonl")
 dataset = handle_multi_conversation_dataset(dataset=dataset, tokenizer=tokenizer)
 print(dataset)
+dataset_eval = load_dataset("json", data_files="./finetune_react_model/finetune_test_samples.jsonl")
+dataset_eval = handle_multi_conversation_dataset(dataset=dataset_eval, tokenizer=tokenizer)
+print(dataset_eval)
 
 data_collator = transformers.DataCollatorForSeq2Seq(
     tokenizer,
@@ -39,6 +43,33 @@ data_collator = transformers.DataCollatorForSeq2Seq(
     pad_to_multiple_of=8,
     # pad_to_multiple_of=ARGS.max_length,  # the max_length arg is unused to padding label
 )
+
+if os.path.exists(SAVE_PATH):
+    os.system(f"rm -rf {SAVE_PATH}")  # 在nfs上shutil.rmtree会报正忙、非空
+os.makedirs(SAVE_PATH, exist_ok=True)
+
+training_arguments = transformers.TrainingArguments(
+    save_total_limit=1,
+    load_best_model_at_end=False,
+    auto_find_batch_size=False,
+    do_train=True,
+    overwrite_output_dir=True,
+    save_safetensors=True,
+    per_device_train_batch_size=1,
+    gradient_accumulation_steps=8,
+    num_train_epochs=10.0,
+    learning_rate=1.0e-5,  # qwen是全参7e-6，我用了lora，所以学习率要大一点
+    lr_scheduler_type="cosine",
+    warmup_ratio=0.1,
+    output_dir=SAVE_PATH,
+    bf16=True,
+    logging_steps=1,
+    report_to="wandb",  # https://docs.wandb.ai/guides/integrations/huggingface
+    # fsdp="full_shard offload",
+    # deepspeed="/mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ds_config.json",
+    eval_strategy="epoch",
+)
+print(training_arguments)
 
 model = AutoModelForCausalLM.from_pretrained(
     MODEL_PATH,
@@ -73,40 +104,15 @@ model.gradient_checkpointing_enable()
 
 print(model)
 
-if os.path.exists(SAVE_PATH):
-    os.system(f"rm -rf {SAVE_PATH}")  # 在nfs上shutil.rmtree会报正忙、非空
-os.makedirs(SAVE_PATH, exist_ok=True)
-
-training_arguments = transformers.TrainingArguments(
-    save_total_limit=1,
-    load_best_model_at_end=False,
-    auto_find_batch_size=False,
-    do_train=True,
-    overwrite_output_dir=True,
-    save_safetensors=True,
-    per_device_train_batch_size=1,
-    gradient_accumulation_steps=8,
-    num_train_epochs=20.0,
-    learning_rate=1.0e-5,
-    lr_scheduler_type="cosine",
-    warmup_ratio=0.1,
-    output_dir=SAVE_PATH,
-    bf16=True,
-    logging_steps=1,
-    report_to="wandb",  # https://docs.wandb.ai/guides/integrations/huggingface
-)
-print(training_arguments)
-
 trainer = transformers.Trainer(
     model=model,
     train_dataset=dataset["train"],
+    eval_dataset=dataset_eval["train"],
     args=training_arguments,
-    data_collator=data_collator
+    data_collator=data_collator,
 )
 
 trainer.train()
 
 model.save_pretrained(SAVE_PATH, safe_serialization=True)
 tokenizer.save_pretrained(SAVE_PATH)
-
-# TODO: gguf?safetensor?

@@ -108,8 +108,11 @@ def continue_conversation(dataframe):
     convert_dataframe_to_current_message(dataframe)
     print("continue_conversation : ", current_messages)
     query = current_data['query']
+    skip_chatbot = (len(current_messages) == 0 or
+                    (current_messages[-1]["content"].endswith("Observation:") or
+                     current_messages[-1]["content"].endswith("Observation:\n")))
     for response_messages in ai_agent.ai_agent_chat(query=query, temperature=0.0, is_print=True,
-                                                    messages=current_messages):
+                                                    messages=current_messages, skip_chatbot=skip_chatbot):
         current_messages = response_messages
         return convert_message_to_dataframe(current_messages)
 

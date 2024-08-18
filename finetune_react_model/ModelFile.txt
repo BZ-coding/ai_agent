@@ -1,0 +1,1 @@
+FROM /mnt/nfs/zsd_server/models/my/llama-3-chinese-8b-tools/merged/Merged-8.0B-F16.gguf

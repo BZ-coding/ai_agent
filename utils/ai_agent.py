@@ -148,11 +148,13 @@ class AIAgent:
         return prompt
 
     def parse_latest_plugin_call(self, text: str) -> Tuple[str, str]:
-        action_index = text.rfind('\nAction:')
-        if action_index == -1:
-            action_index = text.rfind('Action:')
         action_input_index = text.rfind('\nAction Input:')
-        observation_index = text.rfind('\nObservation:')
+        action_index = text.rfind('\nAction:', 0, None if action_input_index == -1 else action_input_index)
+        if action_index == -1:
+            action_index = text.rfind('Action:', 0, None if action_input_index == -1 else action_input_index)
+        observation_index = text.rfind('\nObservation:',
+                                       None if action_input_index == -1 else action_input_index)
+
         if 0 <= action_index < action_input_index:  # If the text has `Action` and `Action input`,
             if observation_index < action_input_index:  # but does not contain `Observation`,
                 # then it is likely that `Observation` is ommited by the LLM,
@@ -193,7 +195,7 @@ class AIAgent:
             print("\033[0m", end='', flush=True)
         return response
 
-    def ai_agent_chat(self, query, temperature=0.0, is_print=True, messages=None):
+    def ai_agent_chat(self, query, temperature=0.0, is_print=True, messages=None, skip_chatbot=False):
         if not messages:
             prompt = self.build_planning_prompt(query)  # 组织prompt
             if is_print:
@@ -202,16 +204,17 @@ class AIAgent:
             yield messages
 
         while True:
-            response = self.ai_agent_chatbot_chat(messages=messages,
-                                                  temperature=temperature,
-                                                  stop=["Observation:", "Observation:\n"],
-                                                  is_print=is_print)
-            messages.append({"role": "assistant", "content": response})
-            if "Final Answer:" in messages[-1]["content"]:
-                break  # 出现final Answer时结束
-            if is_print:
-                print("\033[32m" + "Observation:\n" + "\033[0m", end='', flush=True)
-            messages[-1]["content"] += "Observation:\n"
+            if not skip_chatbot:
+                response = self.ai_agent_chatbot_chat(messages=messages,
+                                                      temperature=temperature,
+                                                      stop=["Observation:", "Observation:\n"],
+                                                      is_print=is_print)
+                messages.append({"role": "assistant", "content": response})
+                if "Final Answer:" in messages[-1]["content"]:
+                    break  # 出现final Answer时结束
+                if is_print:
+                    print("\033[32m" + "Observation:\n" + "\033[0m", end='', flush=True)
+                messages[-1]["content"] += "Observation:\n"
 
             api_output = self.use_api(messages[-1]["content"])  # 抽取入参并执行api
             api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
