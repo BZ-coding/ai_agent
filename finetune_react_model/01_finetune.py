@@ -12,8 +12,8 @@ import wandb
 wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
-    name="lr=1.0e-5",
-    group="样本长度实验",
+    name="数据量43",
+    group="数据量实验",
     magic=True,
 )
 
@@ -68,6 +68,7 @@ training_arguments = transformers.TrainingArguments(
     # fsdp="full_shard offload",
     # deepspeed="/mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ds_config.json",
     eval_strategy="epoch",
+    per_device_eval_batch_size=1,
 )
 print(training_arguments)
 

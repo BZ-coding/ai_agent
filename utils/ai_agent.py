@@ -8,7 +8,7 @@ from typing import Tuple
 def tool_wrapper_for_langchain(tool):
     def tool_(args):
         try:
-            kwargs = json.loads(args)
+            kwargs = json.loads(args, strict=False)
             # loop = asyncio.get_event_loop()
             # results = loop.run_until_complete(tool.run(**kwargs))
             results = tool.run(**kwargs)

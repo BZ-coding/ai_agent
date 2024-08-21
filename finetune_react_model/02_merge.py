@@ -24,4 +24,4 @@ tokenizer.save_pretrained(output_path)
 # cd llama.cpp
 # python convert_hf_to_gguf.py /mnt/nfs/zsd_server/models/my/llama-3-chinese-8b-tools/merged
 ## FROM /mnt/nfs/zsd_server/models/my/llama-3-chinese-8b-tools/merged/Merged-8.0B-F16.gguf
-# ollama create llama-3-chinese-8B-tools-F16-LoRA -f ModelFile.txt
+# ollama create llama-3-chinese-8B-tools-F16-LoRA -f /mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ModelFile.txt
