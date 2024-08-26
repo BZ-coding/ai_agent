@@ -3,3 +3,4 @@
 *.pyc
 Thumbs.db
 wandb/
+lora_adapter/
