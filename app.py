@@ -36,7 +36,6 @@ h3 {
 """
 
 
-@spaces.GPU()
 def stream_chat(
         message: str,
         history: list,

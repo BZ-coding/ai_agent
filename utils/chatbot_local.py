@@ -6,8 +6,6 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM, TextIteratorStreamer, StoppingCriteria, \
     StoppingCriteriaList
 
-MODEL_PATH = '/mnt/nfs/zsd_server/models/huggingface/llama-3-chinese-8b-instruct-v3'
-
 
 class KeywordsStoppingCriteria(StoppingCriteria):
     def __init__(self, keywords: list, tokenizer, device="cpu"):
@@ -44,7 +42,7 @@ class ChatBot:
 
         streamer = None
         if stream:
-            streamer = TextIteratorStreamer(self.tokenizer, timeout=60.0, skip_prompt=True, skip_special_tokens=True)
+            streamer = TextIteratorStreamer(self.tokenizer, timeout=600.0, skip_prompt=True, skip_special_tokens=True)
 
         stopping_criteria = None
         if stop:
@@ -102,6 +100,7 @@ class ChatBot:
 
 
 if __name__ == "__main__":
+    MODEL_PATH = '/mnt/nfs/zsd_server/models/huggingface/llama-3-chinese-8b-instruct-v3'
     tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
     model = AutoModelForCausalLM.from_pretrained(
         MODEL_PATH,
