@@ -117,3 +117,5 @@ trainer.train()
 
 model.save_pretrained(SAVE_PATH, safe_serialization=True)
 tokenizer.save_pretrained(SAVE_PATH)
+
+# ollama create llama-3-chinese-8B-tools-F16-LoRA -f /mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ModelFile.txt
