@@ -12,7 +12,7 @@ import wandb
 wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
-    name="数据量43",
+    name="数据量57",
     group="数据量实验",
     magic=True,
 )
@@ -40,7 +40,7 @@ data_collator = transformers.DataCollatorForSeq2Seq(
     tokenizer,
     return_tensors="pt",
     padding=True,
-    pad_to_multiple_of=8,
+    pad_to_multiple_of=1,
     # pad_to_multiple_of=ARGS.max_length,  # the max_length arg is unused to padding label
 )
 
@@ -57,7 +57,7 @@ training_arguments = transformers.TrainingArguments(
     save_safetensors=True,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=8,
-    num_train_epochs=10.0,
+    num_train_epochs=5.0,
     learning_rate=1.0e-5,  # qwen是全参7e-6，我用了lora，所以学习率要大一点
     lr_scheduler_type="cosine",
     warmup_ratio=0.1,

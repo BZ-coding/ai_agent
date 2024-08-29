@@ -12,7 +12,9 @@ with (open(FORMATED_SAMPLES_PATH, 'r') as f, open(OUTPUT_FINETUNE_SAMPLES_PATH, 
         if data["is_verify"]:
             out_data = {"messages": data["messages"]}
             data_len = len(str(out_data))
-            if data_len > 9000:  # 样本长度太长，哪怕用lora+offload，也会oom
+            if data_len > 10000:
+                continue
+            elif data_len > 6000:  # 样本长度太长，哪怕用lora+offload，也会oom
                 print(f"index:{i} len:{data_len} to f_test_out.")
                 f_test_out.write(json.dumps(out_data, ensure_ascii=False) + '\n')
             else:
