@@ -12,10 +12,11 @@ import wandb
 wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
-    name="数据量57",
+    name="数据量68",
     group="数据量实验",
     magic=True,
 )
+epoch = 5.0
 
 print(os.path.dirname(os.path.dirname(__file__)))
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -57,7 +58,7 @@ training_arguments = transformers.TrainingArguments(
     save_safetensors=True,
     per_device_train_batch_size=1,
     gradient_accumulation_steps=8,
-    num_train_epochs=5.0,
+    num_train_epochs=epoch,
     learning_rate=1.0e-5,  # qwen是全参7e-6，我用了lora，所以学习率要大一点
     lr_scheduler_type="cosine",
     warmup_ratio=0.1,
