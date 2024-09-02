@@ -41,11 +41,19 @@
 
 # 将llama3微调成支持工具调用的模型
 
+业界现在一般训练多轮对话，要么是把一条多轮样本拆成多条单轮样本训练，要么是只训练最后一轮。但把多轮对话拆成多条单轮，会使得每条样本前面的重复部分都要重复计算，浪费算力。而只训练最后一轮，其实不适合类似agent的训练语料。
+
+我的方法则是在label中把除了模型的回答，其他都mask掉，这样一条多轮样本只需要训一次就可以了。并且由于pytorch的交叉熵是把除了class维度的其余维度都展开，一起求平均的，所以从原理上，我的方法就与将一条多轮样本拆成多条单轮样本的训练方法等价。
+
+具体实现：[finetune_react_model/utils/dataset.py](finetune_react_model/utils/dataset.py)
+
+wandb：https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
+
 ----------------------------------------
 
 ## TODO
 
-- [ ] 自己用lora微调langchain agent格式的模型
+- [x] 自己用lora微调langchain agent格式的模型
   > 1. 普通的指令模型（llama3）面对使用工具的场景，表现一般（输出时不遵从工具名）。更为关键的是，langchain的代码太垃圾了（需要格式，指令关键字、标点完全匹配才能成功进入下一步，但llama3用中文时会输出中文标点）
   > 2. 参考toolformer的资料？
   > 3. Llama3使用 bfloat16 进行训练，但原始推理使用float16。
@@ -60,5 +68,8 @@
 - [x] 切换到qwen，qwen本身就支持react格式。 https://github.com/QwenLM/Qwen/blob/main/examples/react_prompt.md
 - [ ] 微调方法可以先试试直接sft，走通后再思考从数据标注那就变成dpo
 - [ ] 如果可以新增一个叫tools的role类型就好了，但ollama（llama3的官方gguf？）只能是system、user和assistant。
-- [ ] 发布上huggingface。但在huggingface的playground里不好放上bing的密钥，所以要把agent完整的跑起来可能会比较麻烦。 
-  - 改成调用rag的agent？放一本中国刑法上去？
+- [x] 发布上huggingface。但在huggingface的playground里不好放上bing的密钥，所以要把agent完整的跑起来可能会比较麻烦。 
+  - ~~改成调用rag的agent？放一本中国刑法上去？~~
+  - https://huggingface.co/spaces/zhangshengdong/llama-3-chinese-8b-tool
+  - cpu跑8b模型太慢
+- [ ] 把agnet跟复杂任务分解、规划，相结合

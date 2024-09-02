@@ -4,6 +4,26 @@ import asyncio
 import sys
 from typing import Tuple
 
+REACT_PROMPT = \
+"""Answer the following questions as best you can. You have access to the following tools:
+
+{tool_descs}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can be repeated zero or more times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {query}
+"""
 
 def tool_wrapper_for_langchain(tool):
     def tool_(args):
@@ -72,7 +92,8 @@ class DefaultTools:
         return {
             'name_for_human': 'Wolfram Alpha',
             'name_for_model': 'Math',
-            'description_for_model': 'Useful for when you need to answer questions about Math, Science, Technology, Culture, Society and Everyday Life.',
+            # 'description_for_model': 'Useful for when you need to answer questions about Math, Science, Technology, Culture, Society and Everyday Life.',
+            'description_for_model': 'Useful for when you need to answer questions about Math.',
             'parameters': [{
                 "name": "query",
                 "type": "string",
@@ -118,7 +139,7 @@ class AIAgent:
 
         self.react_prompt = react_prompt
         if self.react_prompt is None:
-            self.react_prompt = """Answer the following questions as best you can. You have access to the following tools:\n\n{tool_descs}\n\nUse the following format:\n\nQuestion: the input question you must answer\nThought: you should always think about what to do\nAction: the action to take, should be one of [{tool_names}]\nAction Input: the input to the action\nObservation: the result of the action\n... (this Thought/Action/Action Input/Observation can be repeated zero or more times)\nThought: I now know the final answer\nFinal Answer: the final answer to the original input question\n\nBegin!\n\nQuestion: {query}\n"""
+            self.react_prompt = REACT_PROMPT
 
         self.tools_info = tools_info
         if self.tools_info is None:
