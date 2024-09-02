@@ -73,3 +73,5 @@ wandb：https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
   - https://huggingface.co/spaces/zhangshengdong/llama-3-chinese-8b-tool
   - cpu跑8b模型太慢
 - [ ] 把agnet跟复杂任务分解、规划，相结合
+- [ ] 把rag那里的提炼事实方法也用到agent里来
+- [ ] 加入query改写
