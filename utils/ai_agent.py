@@ -4,6 +4,11 @@ import asyncio
 import sys
 from typing import Tuple
 
+print(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from utils.rewriter import ReWriter
+from utils.fact_extraction import FactExtractor
+
 REACT_PROMPT = \
 """Answer the following questions as best you can. You have access to the following tools:
 
@@ -24,6 +29,7 @@ Begin!
 
 Question: {query}
 """
+
 
 def tool_wrapper_for_langchain(tool):
     def tool_(args):
@@ -132,6 +138,8 @@ class DefaultTools:
 class AIAgent:
     def __init__(self, chatbot, tools_info=None, tool_describe_prompt=None, react_prompt=None):
         self.chatbot = chatbot
+        self.rewriter = ReWriter(chatbot=chatbot)
+        self.fact_extractor = FactExtractor(chatbot=chatbot)
 
         self.tool_describe_prompt = tool_describe_prompt
         if self.tool_describe_prompt is None:
@@ -191,14 +199,14 @@ class AIAgent:
     def use_api(self, response):
         use_toolname, action_input = self.parse_latest_plugin_call(response)
         if use_toolname == "":
-            return "tool name is empty"
+            return "tool name is empty", (None, None)
 
         used_tool_meta = list(filter(lambda x: x["name_for_model"] == use_toolname, self.tools_info))
         if len(used_tool_meta) == 0:
-            return "no tool founds"
+            return "no tool founds", (None, None)
 
         api_output = used_tool_meta[0]["tool_api"](action_input)
-        return api_output
+        return api_output, (use_toolname, action_input)
 
     def ai_agent_chatbot_chat(self, messages, temperature, stop, is_print):
         response = ""
@@ -216,8 +224,26 @@ class AIAgent:
             print("\033[0m", end='', flush=True)
         return response
 
-    def ai_agent_chat(self, query, temperature=0.0, is_print=True, messages=None, skip_chatbot=False):
+    def rewrite_func(self, query, is_print=True):
+        if not self.rewriter:
+            return query
+        new_query = self.rewriter.rewrite(query)
+        if is_print:
+            print(f"\033[32mquery: {query} --> {new_query}\033[0m")
+        return new_query
+
+    def fact_extract_func(self, action_input, api_output, is_print=True):
+        if not self.fact_extractor or len(api_output) < 100:
+            return api_output
+        if is_print:
+            print("\033[34m" + "old api_output : " + api_output + "\033[0m")
+        api_output = self.fact_extractor.extract(query=action_input, context=api_output)
+        return api_output
+
+    def ai_agent_chat(self, query, temperature=0.0, is_print=True, messages=None, skip_chatbot=False, rewrite=False, fact_extract=True):
         if not messages:
+            if rewrite:
+                query = self.rewrite_func(query=query, is_print=False)
             prompt = self.build_planning_prompt(query)  # 组织prompt
             if is_print:
                 print(prompt, end='', flush=True)
@@ -237,9 +263,9 @@ class AIAgent:
                     print("\033[32m" + "Observation:\n" + "\033[0m", end='', flush=True)
                 messages[-1]["content"] += "Observation:\n"
 
-            api_output = self.use_api(messages[-1]["content"])  # 抽取入参并执行api
+            api_output, (use_toolname, action_input) = self.use_api(messages[-1]["content"])  # 抽取入参并执行api
             api_output = str(api_output)  # 部分api工具返回结果非字符串格式需进行转化后输出
-            # response = f"Observation: \"\"\"{api_output}\"\"\"\n"
+            api_output = self.fact_extract_func(action_input=f"{action_input} {query}", api_output=api_output, is_print=False)
             response = f"\"\"\"{api_output}\"\"\"\n"
             if is_print:
                 print("\033[34m" + response + "\033[0m", end='', flush=True)
@@ -252,15 +278,13 @@ if __name__ == '__main__':
     python_ast = DefaultTools.get_tool_describe_python()
     print(python_ast['tool_api']("{\"tool_input\": \"print('Hello World!')\"}"))
 
-    print(os.path.dirname(os.path.dirname(__file__)))
-    sys.path.append(os.path.dirname(os.path.dirname(__file__)))
     from utils.chatbot import ChatBot
 
     chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
     ai_agent = AIAgent(chatbot=chatbot)
     is_print = True
 
-    messages = ai_agent.ai_agent_chat(query="金陵中学所在的行政区有多少人?", temperature=0.0, is_print=is_print)
+    messages = ai_agent.ai_agent_chat(query="金陵中学赈灾义演的主持人是章泽天吗？", temperature=0.0, is_print=is_print)
 
     print("\n\n\n\n")
     for current_messages in messages:

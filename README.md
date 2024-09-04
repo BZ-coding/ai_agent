@@ -34,8 +34,11 @@
 
 原本准备直接按照langchain格式来的，但是发现langchain的确不好用，并且又发现qwen的tools参数描述更通用一些，所以就把langchain和qwen的格式糅合在一起（主要参考qwen），写了一套自己的ai_agent框架。
 
-还别说，挺好用的。但是选择哪些工具传进去，好像对结果的影响非常巨大，难不成还要训个小模型去选择tools？
-![image](./utils/my_ai_agent.png)
+## 创新点
+
+对于web_search到的网页过长的问题，加入了对于过长的工具返回，提炼与问题相关的事实的能力。可以大幅减少冗余信息，提升cot思维链效果。
+
+![image](./utils/my_ai_agent_fact_extraction.png)
 
 ----------------------------------------
 
@@ -73,5 +76,5 @@ wandb：https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
   - https://huggingface.co/spaces/zhangshengdong/llama-3-chinese-8b-tool
   - cpu跑8b模型太慢
 - [ ] 把agnet跟复杂任务分解、规划，相结合
-- [ ] 把rag那里的提炼事实方法也用到agent里来
-- [ ] 加入query改写
+- [x] 把rag那里的提炼事实方法也用到agent里来
+- [x] ~~加入query改写~~query改写可能会偏到其他意图，对于搜索来说是致命的
