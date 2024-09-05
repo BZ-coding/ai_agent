@@ -38,7 +38,11 @@
 
 对于web_search到的网页过长的问题，加入了对于过长的工具返回，提炼与问题相关的事实的能力。可以大幅减少冗余信息，提升cot思维链效果。
 
+提炼与问题相关的事实：
 ![image](./utils/my_ai_agent_fact_extraction.png)
+
+不提炼：
+![image](./utils/my_ai_agent.png)
 
 ----------------------------------------
 
