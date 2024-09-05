@@ -12,8 +12,8 @@ import wandb
 wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
-    name="数据量90",
-    group="数据量实验",
+    name="数据量116",
+    group="加入提炼事实的数据",
     magic=True,
 )
 epoch = 5.0

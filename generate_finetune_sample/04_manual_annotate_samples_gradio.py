@@ -169,6 +169,6 @@ with gr.Blocks() as demo:
     # ).then(lambda: gr.Textbox(interactive=True), None, [txt], queue=False)
 
 demo.launch(server_name="0.0.0.0",
-            share=False,
-            debug=True,
+            share=True,
+            debug=False,
             )
