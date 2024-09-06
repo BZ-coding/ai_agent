@@ -1,77 +1,110 @@
-import spaces
-import torch
-from peft import AutoPeftModelForCausalLM
-from transformers import AutoTokenizer
+import json
+import os
+import random
+import sys
+
 import gradio as gr
+import pandas as pd
 
-from utils.chatbot_local import ChatBot
+print(os.path.dirname(os.path.dirname(__file__)))
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
-MODEL_PATH = 'lora_adapter'
+from utils.ai_agent import AIAgent
+from utils.chatbot import ChatBot
 
-model = AutoPeftModelForCausalLM.from_pretrained(
-    MODEL_PATH,
-    torch_dtype=torch.float16,
-    device_map="auto",
-)
-tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
+FORMATED_SAMPLES_PATH = 'checked_finetune_sample_formatted.jsonl'
 
-chatbot = ChatBot(model=model, tokenizer=tokenizer)
-
-PLACEHOLDER = """
-<center>
-<p>Hi! How can I help you today?</p>
-</center>
-"""
-
-CSS = """
-.duplicate-button {
-    margin: auto !important;
-    color: white !important;
-    background: black !important;
-    border-radius: 100vh !important;
-}
-h3 {
-    text-align: center;
-}
-"""
+if gr.NO_RELOAD:
+    chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
+    ai_agent = AIAgent(chatbot=chatbot)
+query = None
+current_messages = None
 
 
-def stream_chat(
-        message: str,
-        history: list,
-):
-    print(f'message: {message}')
-    print(f'history: {history}')
-
-    conversation = [
-        {"role": "system", "content": "You are a helpful assistant."}
-    ]
-    for prompt, answer in history:
-        conversation.extend([
-            {"role": "user", "content": prompt},
-            {"role": "assistant", "content": answer},
-        ])
-
-    conversation.append({"role": "user", "content": message})
-
-    buffer = ""
-    for token in chatbot.chat(messages=conversation, stream=True):
-        buffer += token
-        yield buffer
+def start_conversation(query_textbox):
+    global current_messages, query
+    current_messages = []
+    query = query_textbox
+    return continue_conversation(pd.DataFrame())
 
 
-gr_chatbot = gr.Chatbot(height=600, placeholder=PLACEHOLDER)
+def convert_message_to_dataframe(messages):
+    messages_ = []
+    id = 0
+    for message in messages:  # After edit, the \n will miss
+        messages_.append({"id": id, "role": message["role"], "content": message["content"]})
+        id += 1
+    return pd.DataFrame.from_records(messages_)
 
-with gr.Blocks(css=CSS, theme="soft") as demo:
-    gr.ChatInterface(
-        fn=stream_chat,
-        chatbot=gr_chatbot,
-        fill_height=True,
-    )
 
-if __name__ == "__main__":
-    demo.launch(
-        server_name="0.0.0.0",
-        share=False,
-        debug=True,
-    )
+def convert_dataframe_to_current_message(dataframe):
+    global current_messages
+    messages = dataframe.to_dict(orient='records')
+    result = []
+    for message in messages:
+        content = message['content']
+        result.append({"role": message["role"], "content": content})
+    current_messages = result
+
+
+def continue_conversation(dataframe):
+    global current_messages, query
+    convert_dataframe_to_current_message(dataframe)
+    print("continue_conversation : ", current_messages)
+    skip_chatbot = (len(current_messages) == 0 or
+                    (current_messages[-1]["content"].endswith("Observation:") or
+                     current_messages[-1]["content"].endswith("Observation:\n")))
+    for response_messages in ai_agent.ai_agent_chat(query=query, temperature=0.0, is_print=True,
+                                                    messages=current_messages, skip_chatbot=skip_chatbot):
+        current_messages = response_messages
+        return convert_message_to_dataframe(current_messages)
+
+
+def select_conversation(index):
+    try:
+        id = int(index)
+    except:
+        return ""
+    if id not in range(len(current_messages)):
+        return ""
+    return current_messages[id]["content"]
+
+
+def change_conversation(index, content):
+    global current_messages
+    try:
+        id = int(index)
+    except:
+        return convert_message_to_dataframe(current_messages)
+    if id not in range(len(current_messages)):
+        return convert_message_to_dataframe(current_messages)
+    current_messages[id]["content"] = content
+    if not content:
+        current_messages.pop(id)
+    return convert_message_to_dataframe(current_messages)
+
+
+with gr.Blocks() as demo:
+    gr.Markdown("# Manually Annotate Samples")
+    with gr.Row():
+        with gr.Column():
+            query_textbox = gr.Textbox(label="query", interactive=True)
+            edit_index_textbox = gr.Textbox(label="Edit index")
+            edit_content_textbox = gr.Textbox(label="Edit content", interactive=True)
+        outputs = gr.DataFrame(headers=["id", "role", "content"],
+                               datatype=["number", "str", "markdown"],
+                               interactive=False,
+                               wrap=True)
+    with gr.Row():
+        start_button = gr.Button("Start & Next")
+        continue_button = gr.Button("Continue conversation")
+    start_button.click(fn=start_conversation, inputs=[query_textbox], outputs=[outputs])
+    continue_button.click(fn=continue_conversation, inputs=[outputs], outputs=[outputs])
+    edit_index_textbox.input(fn=select_conversation, inputs=[edit_index_textbox], outputs=[edit_content_textbox])
+    edit_content_textbox.change(fn=change_conversation, inputs=[edit_index_textbox, edit_content_textbox],
+                                outputs=[outputs])
+
+demo.launch(server_name="0.0.0.0",
+            share=True,
+            debug=False,
+            )
