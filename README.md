@@ -80,5 +80,10 @@ wandb：https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
   - https://huggingface.co/spaces/zhangshengdong/llama-3-chinese-8b-tool
   - cpu跑8b模型太慢
 - [ ] 把agnet跟复杂任务分解、规划，相结合
+  > [task_plan.py](utils/task_plan.py)
+  > 
+  > [task_plan.txt](utils/task_plan.txt)
+  > 
+  > 从穿刺的效果来看，非常好。
 - [x] 把rag那里的提炼事实方法也用到agent里来
 - [x] ~~加入query改写~~query改写可能会偏到其他意图，对于搜索来说是致命的
