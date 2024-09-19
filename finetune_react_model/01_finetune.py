@@ -12,7 +12,7 @@ import wandb
 wandb.require("core")
 wandb.init(
     project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
-    name="数据量183",
+    name="数据量200",
     group="加入提炼事实的数据",
     magic=True,
 )
@@ -119,4 +119,5 @@ trainer.train()
 model.save_pretrained(SAVE_PATH, safe_serialization=True)
 tokenizer.save_pretrained(SAVE_PATH)
 
-# ollama create llama-3-chinese-8B-tools-F16-LoRA -f /mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ModelFile.txt
+# ollama create zhangsheng377/llama-3-chinese-8b-tools-f16-lora -f /mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ModelFile.txt
+# ollama push zhangsheng377/llama-3-chinese-8b-tools-f16-lora

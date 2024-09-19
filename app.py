@@ -15,7 +15,7 @@ from utils.chatbot import ChatBot
 FORMATED_SAMPLES_PATH = 'checked_finetune_sample_formatted.jsonl'
 
 if gr.NO_RELOAD:
-    chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
+    chatbot = ChatBot(model_name="zhangsheng377/llama-3-chinese-8b-tools-f16-lora")
     ai_agent = AIAgent(chatbot=chatbot)
 query = None
 current_messages = None

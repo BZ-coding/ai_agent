@@ -280,7 +280,7 @@ if __name__ == '__main__':
 
     from utils.chatbot import ChatBot
 
-    chatbot = ChatBot(model_name="llama-3-chinese-8B-tools-F16-LoRA")
+    chatbot = ChatBot(model_name="zhangsheng377/llama-3-chinese-8b-tools-f16-lora")
     ai_agent = AIAgent(chatbot=chatbot)
     is_print = True
 
