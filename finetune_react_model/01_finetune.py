@@ -11,10 +11,10 @@ import wandb
 # Add requirement for wandb core
 wandb.require("core")
 wandb.init(
-    project="finetune_react_model",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
+    project="test",  # https://wandb.ai/bz-zhangshengdong/finetune_react_model/workspace
     name="数据量200",
     group="加入提炼事实的数据",
-    magic=True,
+    # magic=True,
 )
 epoch = 3.0
 
@@ -67,7 +67,7 @@ training_arguments = transformers.TrainingArguments(
     logging_steps=1,
     report_to="wandb",  # https://docs.wandb.ai/guides/integrations/huggingface
     # fsdp="full_shard offload",
-    # deepspeed="/mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ds_config.json",
+    deepspeed="/mnt/nfs/zsd_server/codes/ai_agent/finetune_react_model/ds_config.json",
     eval_strategy="epoch",
     per_device_eval_batch_size=1,
 )
